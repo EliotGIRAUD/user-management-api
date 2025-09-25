@@ -1,5 +1,5 @@
-import { AppDataSource } from '../config/ormconfig.js';
-import { User } from '../models/UserEntity.js';
+import { AppDataSource } from '../config/ormconfig';
+import { User } from '../models/UserEntity';
 import { Repository } from 'typeorm';
 
 export class UserRepository {

@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
-import { UserService } from '../services/UserService.js';
-import { UserRepository } from '../repositories/UserRepository.js';
-import { User } from '../models/UserEntity.js';
+import { UserService } from '../services/UserService';
+import { UserRepository } from '../repositories/UserRepository';
+import { User } from '../models/UserEntity';
 
 // Initialisation du repository et du service
 const repo = new UserRepository();

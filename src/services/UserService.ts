@@ -1,5 +1,5 @@
-import { User } from '../models/UserEntity.js';
-import { UserRepository } from '../repositories/UserRepository.js';
+import { User } from '../models/UserEntity';
+import { UserRepository } from '../repositories/UserRepository';
 
 export class UserService {
   private readonly repository: UserRepository;

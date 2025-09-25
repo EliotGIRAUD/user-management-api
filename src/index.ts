@@ -1,9 +1,10 @@
 import 'reflect-metadata';
-import { AppDataSource } from './config/ormconfig.js';
-import express from 'express';
-import bodyParser from 'body-parser';
-import cors from 'cors';
-import { UserController } from './controllers/UserController.js';
+import { AppDataSource } from './config/ormconfig';
+import express = require('express');
+import type { Request, Response } from 'express';
+import bodyParser = require('body-parser');
+import cors = require('cors');
+import { UserController } from './controllers/UserController';
 
 AppDataSource.initialize()
   .then(() => {
@@ -13,6 +14,14 @@ AppDataSource.initialize()
     app.use(cors());
     app.use(bodyParser.json());
 
+    app.get('/', (_req: Request, res: Response) => {
+      res.send('User Management API is running');
+    });
+
+    app.get('/health', (_req: Request, res: Response) => {
+      res.json({ status: 'ok' });
+    });
+
     app.post('/users', UserController.createUser);
     app.get('/users', UserController.getAllUsers);
     app.get('/users/:id', UserController.getUserById);
@@ -21,4 +30,4 @@ AppDataSource.initialize()
 
     app.listen(3000, () => console.log('Server running on port 3000'));
   })
-  .catch(err => console.error('Error during Data Source initialization', err));
+  .catch((err: unknown) => console.error('Error during Data Source initialization', err));
