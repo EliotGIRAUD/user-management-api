@@ -8,6 +8,8 @@ import { UserQueryRepositoryImpl } from '../persistence/typeorm/UserQueryReposit
 import { AccountServiceAdapter } from './http/AccountServiceAdapter';
 import { UserOrmEntity } from '../persistence/typeorm/entities/UserOrmEntity';
 import { createAggregationRouter, createUserRouter } from '../presentation/UserRoutes';
+import { OutboxDispatcher } from './http/OutboxDispatcher';
+import { AccountFailureConsumer } from './http/AccountFailureConsumer';
 
 async function bootstrap() {
   await AppDataSource.initialize();
@@ -23,6 +25,13 @@ async function bootstrap() {
   const accounts = new AccountServiceAdapter();
   app.use(createUserRouter(commandRepo, queryRepo, accounts));
   app.use(createAggregationRouter(queryRepo, accounts));
+
+  const dispatcher = new OutboxDispatcher();
+  dispatcher.start(1000);
+
+  // Start failure consumer (compensation)
+  const failureConsumer = new AccountFailureConsumer();
+  await failureConsumer.start();
 
   app.listen(3000, () => console.log('Server running on port 3000'));
 }

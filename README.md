@@ -1,5 +1,20 @@
 # User Management API — v2-clean (Clean Architecture)
 
+## Messaging / RabbitMQ (Outbox)
+
+- Variables d'environnement:
+  - `RABBITMQ_URL=amqp://localhost`
+  - `RABBITMQ_USER_EXCHANGE=user.events`
+  - `USE_SYNC_SAGA=false` pour activer la saga asynchrone via outbox
+
+- Flux:
+  - Création utilisateur: écrit un événement `UserCreated` dans l'outbox; un dispatcher publie vers `user.events`.
+  - Suppression utilisateur: `UserDeletionRequested` publié; le service comptes consomme et supprime les comptes.
+
+- Démarrage local:
+  1. Lancer RabbitMQ (Docker: `docker run -p 5672:5672 -p 15672:15672 rabbitmq:3-management`).
+  2. `npm run dev:all` (API + service comptes). Assurez-vous que `USE_SYNC_SAGA=false` si vous voulez tester le flux async.
+
 API REST en Node.js + TypeScript + Express + TypeORM (MySQL) structurée selon Clean Architecture en 5 couches:
 
 - Presentation: `src/presentation/*` (routes Express)

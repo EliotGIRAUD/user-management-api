@@ -1,6 +1,7 @@
 import 'reflect-metadata';
 import { DataSource } from 'typeorm';
 import { UserOrmEntity } from '../persistence/typeorm/entities/UserOrmEntity';
+import { OutboxOrmEntity } from '../persistence/typeorm/entities/OutboxOrmEntity';
 
 export const AppDataSource = new DataSource({
   type: 'mysql',
@@ -11,7 +12,7 @@ export const AppDataSource = new DataSource({
   database: 'userdb',
   synchronize: true,
   logging: false,
-  entities: [UserOrmEntity],
+  entities: [UserOrmEntity, OutboxOrmEntity],
   migrations: [],
   subscribers: [],
 });

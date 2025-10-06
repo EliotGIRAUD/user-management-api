@@ -4,6 +4,8 @@ import bodyParser = require('body-parser');
 import cors = require('cors');
 import { DataSource } from 'typeorm';
 import { AccountOrmEntity } from './typeorm/AccountOrmEntity';
+import { Rabbit } from './rabbit';
+import type { ConsumeMessage } from 'amqplib';
 
 const PORT = process.env.ACCOUNT_SERVICE_PORT ? Number(process.env.ACCOUNT_SERVICE_PORT) : 3001;
 
@@ -30,6 +32,55 @@ async function bootstrap() {
   app.get('/health', (_req, res) => res.json({ status: 'ok' }));
 
   const repo = AccountDataSource.getRepository(AccountOrmEntity);
+
+  const ch = await Rabbit.getChannel();
+  const userExchange = process.env.RABBITMQ_USER_EXCHANGE || 'user.events';
+  await ch.assertExchange(userExchange, 'topic', { durable: true });
+  // Producer exchange for account events (failures)
+  const accountExchange = process.env.RABBITMQ_ACCOUNT_EXCHANGE || 'account.events';
+  await ch.assertExchange(accountExchange, 'topic', { durable: true });
+
+  // Consumers: UserCreated
+  {
+    const queue = 'user.events.UserCreated';
+    await ch.assertQueue(queue, { durable: true });
+    await ch.bindQueue(queue, userExchange, 'UserCreated');
+    ch.consume(queue, async (msg: ConsumeMessage | null) => {
+      if (!msg) return;
+      try {
+        const payload = JSON.parse(msg.content.toString()) as { messageId?: string; user: { id: number } };
+        const entity = repo.create({ userId: payload.user.id });
+        await repo.save(entity);
+        ch.ack(msg);
+      } catch (err) {
+        try {
+          const failEvt = { messageId: (Math.random()*1e18).toString(36), occurredAt: new Date().toISOString(), reason: String(err), userId: (() => { try { return (JSON.parse(msg.content.toString()) as any).user.id; } catch { return undefined; } })() };
+          const buf = Buffer.from(JSON.stringify(failEvt));
+          await new Promise<void>((resolve, reject) => {
+            ch.publish(accountExchange, 'AccountCreateFailed', buf, { contentType: 'application/json', persistent: true }, (e?: any) => e ? reject(e) : resolve());
+          });
+        } finally {
+          ch.nack(msg, false, false); // DLQ policy can be attached to queue
+        }
+      }
+    });
+  }
+  // Consumers: UserDeletionRequested
+  {
+    const queue = 'user.events.UserDeletionRequested';
+    await ch.assertQueue(queue, { durable: true });
+    await ch.bindQueue(queue, userExchange, 'UserDeletionRequested');
+    ch.consume(queue, async (msg: ConsumeMessage | null) => {
+      if (!msg) return;
+      try {
+        const payload = JSON.parse(msg.content.toString()) as { userId: number };
+        await repo.delete({ userId: payload.userId });
+        ch.ack(msg);
+      } catch (err) {
+        ch.nack(msg, false, false);
+      }
+    });
+  }
 
   app.post('/accounts', async (req, res) => {
     try {

@@ -9,7 +9,8 @@
     "dev": "concurrently \"tsc -p tsconfig.build.json -w\" \"nodemon --watch dist dist/external/server.js\"",
     "dev:accounts": "cd services/account-service && npm run dev",
     "build:accounts": "cd services/account-service && npm run build",
-    "dev:all": "concurrently \"npm run dev\" \"npm run dev:accounts\""
+    "dev:all": "concurrently \"npm run dev\" \"npm run dev:accounts\"",
+    "dev:rmq": "docker run --rm -p 5672:5672 -p 15672:15672 rabbitmq:3-management"
   },
   "keywords": [],
   "author": "",
@@ -18,17 +19,20 @@
   "dependencies": {
     "@types/express": "^5.0.3",
     "@types/node": "^24.5.2",
+    "amqplib": "^0.10.9",
     "body-parser": "^2.2.0",
     "cors": "^2.8.5",
     "express": "^5.1.0",
     "mysql2": "^3.15.1",
-    "reflect-metadata": "^0.2.2",
     "node-fetch": "^3.3.2",
+    "reflect-metadata": "^0.2.2",
     "ts-node-dev": "^2.0.0",
     "typeorm": "^0.3.27",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
+    "@types/amqplib": "^0.10.7",
     "@types/cors": "^2.8.19",
     "concurrently": "^9.2.1",
     "nodemon": "^3.1.10",
