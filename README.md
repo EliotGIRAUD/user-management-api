@@ -92,3 +92,20 @@ src/
 ---
 
 Étapes suivantes (Partie B & C): migration vers Clean Architecture, puis CQRS (branches et tags dédiés).
+
+## Microservices & Orchestration
+
+- Services:
+  - User Service (port 3000) — dossier racine, Clean Architecture + CQRS
+  - Account Service (port 3001) — `services/account-service` (DB dédiée `accountdb`)
+- Orchestration (Saga):
+  - Création utilisateur: User créé → appel Account Service `/accounts` → si échec, suppression compensatoire de l’utilisateur
+  - Suppression utilisateur: suppression des comptes (`/accounts/:id`) puis suppression de l’utilisateur
+- Endpoints agrégés:
+  - GET `/users/:id/with-accounts` → retourne l’utilisateur + ses comptes (appel Account Service)
+- Lancement en dev:
+  - `npm run dev:all` (démarre User Service et Account Service)
+
+Variables utiles:
+- `ACCOUNT_SERVICE_URL` (par défaut `http://localhost:3001`)
+- `ACCOUNT_DB_*` pour le service comptes (host, port, user, password, name)
