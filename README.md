@@ -49,6 +49,20 @@ L’API écoute sur `http://localhost:3000`.
 - Contrôleurs/Routes appellent uniquement les use cases.
 - Erreurs et validations gérées au niveau `Application` (à étoffer selon besoins).
 
+## CQRS (v2-clean)
+
+- Séparation des use cases:
+  - Commands: `src/application/usecases/commands/*` (Create/Update/Delete)
+  - Queries: `src/application/usecases/queries/*` (GetAll/GetById)
+- Ports dédiés:
+  - Command port: `src/application/ports/UserCommandRepositoryPort.ts`
+  - Query port: `src/application/ports/UserQueryRepositoryPort.ts`
+- Persistence: adaptateurs séparés
+  - `src/persistence/typeorm/UserCommandRepositoryImpl.ts`
+  - `src/persistence/typeorm/UserQueryRepositoryImpl.ts`
+- Routes: composition par injection des deux ports via `createUserRouter(commandRepo, queryRepo)`
+- Point d’entrée: `src/external/server.ts`
+
 ## Legacy (v1)
 
 Les anciens fichiers N‑Layer ont été archivés dans `src/legacy/` (controllers/services/repositories/models/config/index) pour référence. Le point d’entrée est désormais `src/external/server.ts`.

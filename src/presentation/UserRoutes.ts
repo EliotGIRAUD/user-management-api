@@ -1,20 +1,21 @@
 import { Router, type Request, type Response } from 'express';
-import { CreateUser } from '../application/usecases/CreateUser';
-import { GetAllUsers } from '../application/usecases/GetAllUsers';
-import { GetUserById } from '../application/usecases/GetUserById';
-import { UpdateUser } from '../application/usecases/UpdateUser';
-import { DeleteUser } from '../application/usecases/DeleteUser';
-import type { UserRepositoryPort } from '../application/ports/UserRepositoryPort';
+import { CreateUserCommand } from '../application/usecases/commands/CreateUser';
+import { UpdateUserCommand } from '../application/usecases/commands/UpdateUser';
+import { DeleteUserCommand } from '../application/usecases/commands/DeleteUser';
+import { GetAllUsersQuery } from '../application/usecases/queries/GetAllUsers';
+import { GetUserByIdQuery } from '../application/usecases/queries/GetUserById';
+import type { UserCommandRepositoryPort } from '../application/ports/UserCommandRepositoryPort';
+import type { UserQueryRepositoryPort } from '../application/ports/UserQueryRepositoryPort';
 import type { CreateUserInputDTO } from '../application/dto/CreateUserInputDTO';
 import type { UpdateUserInputDTO } from '../application/dto/UpdateUserInputDTO';
 
-export function createUserRouter(repo: UserRepositoryPort): Router {
+export function createUserRouter(commandRepo: UserCommandRepositoryPort, queryRepo: UserQueryRepositoryPort): Router {
   const router = Router();
-  const createUser = new CreateUser(repo);
-  const getAllUsers = new GetAllUsers(repo);
-  const getUserById = new GetUserById(repo);
-  const updateUser = new UpdateUser(repo);
-  const deleteUser = new DeleteUser(repo);
+  const createUser = new CreateUserCommand(commandRepo);
+  const updateUser = new UpdateUserCommand(commandRepo);
+  const deleteUser = new DeleteUserCommand(commandRepo);
+  const getAllUsers = new GetAllUsersQuery(queryRepo);
+  const getUserById = new GetUserByIdQuery(queryRepo);
 
   router.post('/users', async (req: Request, res: Response) => {
     try {

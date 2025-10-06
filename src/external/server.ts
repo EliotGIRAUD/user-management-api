@@ -3,7 +3,8 @@ import express = require('express');
 import bodyParser = require('body-parser');
 import cors = require('cors');
 import { AppDataSource } from './datasource';
-import { UserRepositoryImpl } from '../persistence/typeorm/UserRepositoryImpl';
+import { UserCommandRepositoryImpl } from '../persistence/typeorm/UserCommandRepositoryImpl';
+import { UserQueryRepositoryImpl } from '../persistence/typeorm/UserQueryRepositoryImpl';
 import { UserOrmEntity } from '../persistence/typeorm/entities/UserOrmEntity';
 import { createUserRouter } from '../presentation/UserRoutes';
 
@@ -16,8 +17,9 @@ async function bootstrap() {
   app.get('/', (_req, res) => res.send('User Management API (Clean Architecture)'));
   app.get('/health', (_req, res) => res.json({ status: 'ok' }));
 
-  const repo = new UserRepositoryImpl(AppDataSource.getRepository(UserOrmEntity));
-  app.use(createUserRouter(repo));
+  const commandRepo = new UserCommandRepositoryImpl(AppDataSource.getRepository(UserOrmEntity));
+  const queryRepo = new UserQueryRepositoryImpl(AppDataSource.getRepository(UserOrmEntity));
+  app.use(createUserRouter(commandRepo, queryRepo));
 
   app.listen(3000, () => console.log('Server running on port 3000'));
 }
