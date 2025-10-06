@@ -5,6 +5,8 @@ import { GetUserById } from '../application/usecases/GetUserById';
 import { UpdateUser } from '../application/usecases/UpdateUser';
 import { DeleteUser } from '../application/usecases/DeleteUser';
 import type { UserRepositoryPort } from '../application/ports/UserRepositoryPort';
+import type { CreateUserInputDTO } from '../application/dto/CreateUserInputDTO';
+import type { UpdateUserInputDTO } from '../application/dto/UpdateUserInputDTO';
 
 export function createUserRouter(repo: UserRepositoryPort): Router {
   const router = Router();
@@ -16,8 +18,9 @@ export function createUserRouter(repo: UserRepositoryPort): Router {
 
   router.post('/users', async (req: Request, res: Response) => {
     try {
-      const user = await createUser.execute(req.body);
-      res.status(201).json(user);
+      const input = req.body as CreateUserInputDTO;
+      const created = await createUser.execute(input);
+      res.status(201).json(created);
     } catch (err) {
       res.status(500).json({ message: 'Error creating user', error: err });
     }
@@ -35,7 +38,8 @@ export function createUserRouter(repo: UserRepositoryPort): Router {
   });
 
   router.put('/users/:id', async (req: Request, res: Response) => {
-    const updated = await updateUser.execute(Number(req.params.id), req.body);
+    const input = req.body as UpdateUserInputDTO;
+    const updated = await updateUser.execute(Number(req.params.id), input);
     if (updated) res.json(updated);
     else res.status(404).json({ message: 'User not found' });
   });

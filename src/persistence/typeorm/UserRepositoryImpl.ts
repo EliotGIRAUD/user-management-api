@@ -2,31 +2,33 @@ import { Repository } from 'typeorm';
 import type { UserRepositoryPort } from '../../application/ports/UserRepositoryPort';
 import type { User } from '../../domain/entities/User';
 import { UserOrmEntity } from './entities/UserOrmEntity';
+import { mapDomainToOrm, mapOrmToDomain } from './mapping/UserOrmMapper';
 
 export class UserRepositoryImpl implements UserRepositoryPort {
   constructor(private readonly repo: Repository<UserOrmEntity>) {}
 
   async create(user: User): Promise<User> {
-    const entity = this.repo.create(user as any);
+    const entity = this.repo.create(mapDomainToOrm(user));
     const saved = await this.repo.save(entity);
-    return saved as unknown as User;
+    return mapOrmToDomain(saved);
   }
 
-  findAll(): Promise<User[]> {
-    return this.repo.find() as unknown as Promise<User[]>;
+  async findAll(): Promise<User[]> {
+    const found = await this.repo.find();
+    return found.map(mapOrmToDomain);
   }
 
   async findById(id: number): Promise<User | null> {
     const found = await this.repo.findOneBy({ id });
-    return (found as unknown as User) ?? null;
+    return found ? mapOrmToDomain(found) : null;
   }
 
   async update(id: number, updated: Partial<User>): Promise<User | null> {
     const found = await this.repo.findOneBy({ id });
     if (!found) return null;
-    Object.assign(found, updated);
+    Object.assign(found, mapDomainToOrm({ ...mapOrmToDomain(found), ...updated } as User));
     const saved = await this.repo.save(found);
-    return saved as unknown as User;
+    return mapOrmToDomain(saved);
   }
 
   async delete(id: number): Promise<boolean> {
